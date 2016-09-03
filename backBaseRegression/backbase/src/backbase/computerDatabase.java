@@ -15,6 +15,8 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import pageObjects.*;
+
 
 //to make sure the CRUD operations work synchronously(in a certain order)-easily sorted
 @FixMethodOrder(MethodSorters.NAME_ASCENDING) 		
@@ -28,84 +30,105 @@ public class computerDatabase {
 	private static String baseUrl;
 	public static int waits;
 	private static StringBuffer verificationErrors = new StringBuffer();
+	
 	public static String compName = "testComp"; 
 	public static String introduced = "1995-01-01"; 
-	public static String compNameUpdated = "testCompUpdated"; 
+	public static String compNameUpdated = "testCompUpdated";
+	public static String companyName = "Apple Inc.";
+	
+	public static Edit_Page editPage;
+	public static List_Page listPage;
 
 	@BeforeClass
 	public static void setUp() throws Exception {
 		driver = new FirefoxDriver();
 		baseUrl = "http://computer-database.herokuapp.com";
 		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		
+		editPage = new Edit_Page(driver);
+		listPage = new List_Page(driver);
 	}
 
 	@Test
 	public void test01addComp() throws Exception {
 		//add a new computer
-		driver.get(baseUrl + "/computers");
-		driver.findElement(By.id("add")).click();
+		listPage.redirect(baseUrl);
+		
+		listPage.btn_Add().click();
 		Thread.sleep(2000);
-		driver.findElement(By.id("name")).clear();
-		driver.findElement(By.id("name")).sendKeys(compName);
-		driver.findElement(By.id("introduced")).clear();
-		driver.findElement(By.id("introduced")).sendKeys(introduced);
-		new Select(driver.findElement(By.id("company"))).selectByVisibleText("Apple Inc.");
-		driver.findElement(By.cssSelector("input.btn.primary")).click();
+		
+		editPage.txt_Name().clear();
+		editPage.txt_Name().sendKeys(compName);
+		
+		editPage.txt_Introduced().clear();
+		editPage.txt_Introduced().sendKeys(introduced);
+		
+		new Select(editPage.slc_Company()).selectByVisibleText(companyName);
+		
+		editPage.btn_Save().click();
 	}
 
 	@Test
 	public void test02searchComp() throws Exception {
 		//filter a computer by name, look it up and close it
-		driver.findElement(By.id("searchbox")).clear();
-		driver.findElement(By.id("searchbox")).sendKeys(compName);
-		driver.findElement(By.id("searchsubmit")).click();
-		driver.findElement(By.linkText(compName)).click();
-		driver.findElement(By.linkText("Cancel")).click();		
+		listPage.txt_Filter().clear();
+		listPage.txt_Filter().sendKeys(compName);
+		
+		listPage.btn_Filter().click();
+		
+		listPage.btn_Link(compName).click();
+		
+		editPage.btn_Cancel().click();
+			
 	}
 	
 	@Test
 	public void test03updateComp() throws Exception {
 		//edit a computer and search with the new name, look it up and  close
-	    driver.findElement(By.id("searchbox")).clear();
-	    driver.findElement(By.id("searchbox")).sendKeys(compName);
-	    driver.findElement(By.id("searchsubmit")).click();
-	    driver.findElement(By.linkText(compName)).click();
-	    driver.findElement(By.id("name")).clear();
-	    driver.findElement(By.id("name")).sendKeys(compNameUpdated);
-	    driver.findElement(By.cssSelector("input.btn.primary")).click();
-	    driver.findElement(By.id("searchbox")).clear();
-	    driver.findElement(By.id("searchbox")).sendKeys(compNameUpdated);
-	    driver.findElement(By.id("searchsubmit")).click();
-	    driver.findElement(By.linkText(compNameUpdated)).click();
-	    driver.findElement(By.linkText("Cancel")).click();
+		listPage.txt_Filter().clear();
+		listPage.txt_Filter().sendKeys(compName);
+		
+		listPage.btn_Filter().click();
+		
+		listPage.btn_Link(compName).click();
+		
+		editPage.txt_Name().clear();
+		editPage.txt_Name().sendKeys(compNameUpdated);
+		
+		editPage.btn_Save().click();
+		
+		listPage.txt_Filter().clear();
+		listPage.txt_Filter().sendKeys(compNameUpdated);
+		
+		listPage.btn_Filter().click();
+		
+		listPage.btn_Link(compNameUpdated).click();
+		
+		editPage.btn_Cancel().click();
 	}
 
 	@Test
 	public void test04deleteComp() throws Exception {
 		//find the computer saved and updated and delete that computer
-	    driver.findElement(By.id("searchbox")).clear();
-	    driver.findElement(By.id("searchbox")).sendKeys(compNameUpdated);
-	    driver.findElement(By.id("searchsubmit")).click();
-	    driver.findElement(By.linkText(compNameUpdated)).click();
-	    driver.findElement(By.id("name")).clear();
-	    driver.findElement(By.id("name")).sendKeys(compNameUpdated);
-	    driver.findElement(By.cssSelector("input.btn.primary")).click();
-	    driver.findElement(By.id("searchbox")).clear();
-	    driver.findElement(By.id("searchbox")).sendKeys(compNameUpdated);
-	    driver.findElement(By.id("searchsubmit")).click();
-	    driver.findElement(By.linkText(compNameUpdated)).click();
-	    driver.findElement(By.linkText("Cancel")).click();		
+		listPage.txt_Filter().clear();
+		listPage.txt_Filter().sendKeys(compNameUpdated);
+		
+		listPage.btn_Filter().click();
+		
+		listPage.btn_Link(compNameUpdated).click();
+		
+		editPage.btn_Remove().click();	
 	}
 
 	@Test
 	public void test05moveToNextPage() throws Exception {
 		//move to the next page of computers data table
-		driver.findElement(By.xpath("//div[@id='pagination']/ul/li[@class='next']/a")).click();
+		listPage.btn_Next().click();
 	}
 	@Test
 	public void test06moveToPreviousPage() throws Exception {
 		//move to the previous page of computers data table
-		driver.findElement(By.xpath("//div[@id='pagination']/ul/li[@class='prev']/a")).click();
+		listPage.btn_Previous().click();
 	}
 	
 	@AfterClass
